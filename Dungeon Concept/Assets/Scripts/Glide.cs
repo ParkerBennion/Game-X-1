@@ -11,18 +11,21 @@ public class Glide : MonoBehaviour
 {
     PlayerControlls controls;
     
-    private float power = 13;
+    private static float power = 13;
     private static float thrust = 0;
-    public static float grav = 15f;
+    private static float grav = 13f;
     public static float rollrights;
-    public static float rolls;
+    public static float rolllefts;
     public static float currentSpeed;
     public static float gravTotal;
-    
-    public static int boostMode;
-    public static int currentBoost;
+    public static float gravAngle;
+    public static float rotAngle;
+
+    private static int boostMode;
+    private static int currentBoost;
     
     public static bool bonusGrav;
+    private bool isPlaying;
     
     public static string gear = "none";
 
@@ -33,32 +36,46 @@ public class Glide : MonoBehaviour
     
     public static Quaternion craftRot;
 
+    public GameObject vertSensor;
+    public GameObject horoSensor;
+    
+
 
 
     private void Awake()
     {
         controls = new PlayerControlls();
         //controls.GamePlay.roll.performed += ctx => Grow();
+        
         controls.gamePlay.rollRight.performed += ctx => rollrights = ctx.ReadValue<float>();
-        controls.gamePlay.rollLeft.performed += ctx => rolls = ctx.ReadValue<float>();
+        controls.gamePlay.rollLeft.performed += ctx => rolllefts = ctx.ReadValue<float>();
         controls.gamePlay.booster.performed += ctx => Boost();
         controls.gamePlay.booster.canceled += ctx => BoostOff();
         controls.gamePlay.brake.performed += ctx => Airbrake();
         controls.gamePlay.brake.canceled += ctx => AirbrakeOff();
+        // sets up game pad buttons
+        
         gliderBody = GetComponent<Rigidbody>();
+        //used to add force
+        
         GetComponent<Rigidbody>().drag = .5f;
         GetComponent<Rigidbody>().angularDrag = 1;
         currentBoost = 0;
+        isPlaying = true;
     }
 
     private void Start()
     {
         StartCoroutine(FindVelocity());
+        
+        vertSensor.SetActive(true);
+        horoSensor.SetActive(true);
+        //sets the angle finding objects in the scene.
     }
-    
+
     IEnumerator FindVelocity()
     {
-        bool isPlaying = true;
+        
         while (isPlaying)
         {
             Vector3 prevPos = transform.position;
@@ -66,10 +83,11 @@ public class Glide : MonoBehaviour
             currentSpeed = Mathf.RoundToInt(Vector3.Distance(transform.position, prevPos) / Time.fixedDeltaTime);
         }
     }
+    //finds the velocity of the player
     void FixedUpdate()
     {
-        transform.Translate(Vector3.forward * power * Time.deltaTime);
-        gliderBody.AddForce(transform.forward * thrust *Time.deltaTime);
+        transform.Translate(Vector3.forward * power * Time.deltaTime);// rail like movement
+        gliderBody.AddForce(transform.forward * thrust *Time.deltaTime); // vector type movement
         
         //gliderBody.AddForce(transform.up * liftTotal * Time.deltaTime);
         //gliderBody.AddForce(transform.up * -liftTotal * Time.deltaTime);
@@ -77,24 +95,29 @@ public class Glide : MonoBehaviour
         
         transform.Rotate(Vector3.right*100*Time.deltaTime); //constant dive
 
-        transform.Rotate(Vector3.left*rollrights*100*Time.deltaTime);
-        transform.Rotate(Vector3.forward*rollrights*50*Time.deltaTime);
+        transform.Rotate(Vector3.left*rollrights*100*Time.deltaTime);// pitch right
+        transform.Rotate(Vector3.forward*rollrights*50*Time.deltaTime); // lift
         
-        transform.Rotate(Vector3.left*rolls*100*Time.deltaTime); //rolls
-        transform.Rotate(Vector3.back * rolls * 50 * Time.deltaTime); //rolls
+        transform.Rotate(Vector3.left*rolllefts*100*Time.deltaTime); //pitch left
+        transform.Rotate(Vector3.back * rolllefts * 50 * Time.deltaTime); //lift
 
-        gravTotal = grav - currentSpeed;
+        transform.Rotate(Vector3.up * rotAngle * Time.deltaTime); //rotate
+        //transform.Rotate(Vector3.down * rotAngle * Time.deltaTime);// rotate
+
+        gravTotal = grav - currentSpeed + gravAngle;
         if (gravTotal < 1)
         {
             gravTotal = 0;
         }
         Physics.gravity = new Vector3(0, -gravTotal, 0);
+        
     }
 
     /*void Grow()
     {
         transform.localScale *= 1.1f;
     }*/
+    // code to make an object grow.
 
     private static void Boost()
     {
@@ -102,6 +125,7 @@ public class Glide : MonoBehaviour
         switch (boostMode)
         {
             case 0 :
+                power = 13;
                 gear = "primed";
                 break;
             case 1 :
@@ -116,13 +140,12 @@ public class Glide : MonoBehaviour
                 break;
         }
     }
-    
-    
+    // switches between motor functions.
     void BoostOff()
     {
         currentBoost ++;
     }
-    
+    // switches modes in the boost method.
 
     void Airbrake()
     {
@@ -134,7 +157,7 @@ public class Glide : MonoBehaviour
         GetComponent<Rigidbody>().angularDrag = .5f;
         power = 13;
     }
-
+    //needs work. allows the player to slow down and regain control.
 
     private void OnEnable()
     {
@@ -144,31 +167,17 @@ public class Glide : MonoBehaviour
     {
         controls.gamePlay.Disable();
     }
-
+    //to enable and disable gamepad;
+    
     private void Update()
     {
+        gravAngle = Math.Abs(vQuatFinder.verticalGoldenAngle * .08f);
+        rotAngle = hQuatFinder.horozontalGoldenAngle * .2f;
+        
+        //adds gravity to the craft at high angles.
         currentAngle = transform.eulerAngles;
-
-        if (currentAngle.x>= 35 && currentAngle.x <335)
-        {
-            bonusGrav = true;
-        }
-        else
-        {
-            bonusGrav = false;
-        }
-        if (bonusGrav == true)
-        {
-            grav = 20;
-        }
-
-        if (bonusGrav == false)
-        {
-            grav = 15;
-        }
-
-
         craftPos = transform.position;
         craftRot = transform.rotation;
+        // used as reference in other scripts that need the orientation of the player.
     }
 }
