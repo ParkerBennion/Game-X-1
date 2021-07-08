@@ -14,6 +14,10 @@ public class Diognostics : MonoBehaviour
     public Text five;
     public Text six;
     public Text seven;
+    public Text eight;
+    public Text nine;
+    public Text ten;
+    public Text eleven;
     
     public Slider rightTrigger;
     public Slider leftTrigger;
@@ -27,9 +31,12 @@ public class Diognostics : MonoBehaviour
         three.text = Glide.gravTotal.ToString("0" + "current gravity");
         four.text = Glide.gravAngle.ToString("0" + "added gravity");
         five.text = Glide.bonusGrav.ToString();
-        six.text = Glide.currentAngle.ToString("0,0,0" + "angle in vector3");
+        six.text = Glide.currentBoost.ToString("0" + "gear");
         seven.text = hQuatFinder.horozontalGoldenAngle.ToString("0" + "Horozontal Angle");
-        
+        eight.text = AccelTester.currStrength.ToString(".0");
+        nine.text = BaccelTester.myNumber.ToString(".0");
+        ten.text = vQuatFinder.verticalGoldenAngle.ToString(".0");
+        //eleven.text = 
         rightTrigger.value = Glide.rollrights;
         leftTrigger.value = Glide.rolllefts;
     }
