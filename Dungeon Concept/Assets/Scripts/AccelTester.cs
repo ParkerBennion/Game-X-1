@@ -11,10 +11,11 @@ public class AccelTester : MonoBehaviour
     void Update()
     {
         recoveryRate = Mathf.Abs(vQuatFinder.verticalGoldenAngle/3);
-        if (recoveryRate<=1)
+        if (recoveryRate<=6)
         {
-            recoveryRate = 1;
+            recoveryRate = 6;
         }
+        // this needs adjusting to be more responsive and more varied over distance.
         maxStrength = vQuatFinder.verticalGoldenAngle;
         currStrength = Mathf.MoveTowards(currStrength, maxStrength, recoveryRate * Time.deltaTime);
     }

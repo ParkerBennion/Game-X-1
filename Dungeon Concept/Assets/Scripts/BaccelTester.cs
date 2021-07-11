@@ -28,4 +28,5 @@ public class BaccelTester : MonoBehaviour
        float t = (Time.time - startTime) / duration;
        myNumber = Mathf.SmoothStep(minimum, maximum, t);
    }
+   //currently unused
 }

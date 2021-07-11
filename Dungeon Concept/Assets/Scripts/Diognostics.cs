@@ -18,6 +18,9 @@ public class Diognostics : MonoBehaviour
     public Text nine;
     public Text ten;
     public Text eleven;
+    public Text twelve;
+    public Text thirteen;
+    public Text fourteen;
     
     public Slider rightTrigger;
     public Slider leftTrigger;
@@ -25,18 +28,21 @@ public class Diognostics : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        zero.text = Glide.currentSpeed.ToString(".0");
+        zero.text = Glide.currentSpeed.ToString(".0" +"speed");
         one.text = Glide.gear;
-        two.text = vQuatFinder.verticalGoldenAngle.ToString("0"+" vertical angle");
+        two.text = Glide.currentBoost.ToString("0" + "gear");
         three.text = Glide.gravTotal.ToString("0" + "current gravity");
         four.text = Glide.gravAngle.ToString("0" + "added gravity");
-        five.text = Glide.bonusGrav.ToString();
-        six.text = Glide.currentBoost.ToString("0" + "gear");
-        seven.text = hQuatFinder.horozontalGoldenAngle.ToString("0" + "Horozontal Angle");
-        eight.text = AccelTester.currStrength.ToString(".0");
-        nine.text = BaccelTester.myNumber.ToString(".0");
-        ten.text = vQuatFinder.verticalGoldenAngle.ToString(".0");
-        //eleven.text = 
+        five.text = Glide.momentum.ToString("0" + " momentum");
+        six.text = Glide.enginePower.ToString("0" + " Engine Power");
+        seven.text = Glide.power.ToString("0" + " Total power");
+        eight.text = Glide.thrust.ToString("0" + " thrust");
+        nine.text = AccelTester.currStrength.ToString(".0");
+        ten.text = vQuatFinder.verticalGoldenAngle.ToString(".0"+ "true vert angle");
+        eleven.text = hQuatFinder.horozontalGoldenAngle.ToString("0" + "Horozontal Angle");
+        twelve.text = Glide.engineOn.ToString();
+        thirteen.text = BoostAccel.engineCurrent.ToString("0");
+        fourteen.text = Glide.rolllefts.ToString(".0");
         rightTrigger.value = Glide.rollrights;
         leftTrigger.value = Glide.rolllefts;
     }
