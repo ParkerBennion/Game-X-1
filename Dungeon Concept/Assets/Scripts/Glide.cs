@@ -9,13 +9,13 @@ using UnityEngine.UI;
 
 public class Glide : MonoBehaviour
 {
+    
     PlayerControlls controls;
     SecondaryControls secondary;
     
     public static float power = 13;
     public static float enginePower;
     public static float thrust = 0;
-    private static float grav = 13f;
     public static float rollrights;
     public static float rolllefts;
     public static float currentSpeed;
@@ -23,17 +23,18 @@ public class Glide : MonoBehaviour
     public static float gravAngle;
     public static float rotAngle;
     public static float momentum;
-    private float engineDelta =2;
+    public static float engineDelta =2;
+    private static float grav = 13f;
 
     private static int boostMode;
     public static int currentBoost;
     private static int rotToggle = 0;
-    public static bool engineOn;
-    private bool stage2 = false;
-
-    //public static bool bonusGrav;
+    
     private bool isPlaying;
     private bool isFindingMomentum;
+    private bool stage2 = false;
+    public static bool engineOn;
+    private static bool activeAirplane;
     
     public static string gear = "none";
 
@@ -42,14 +43,19 @@ public class Glide : MonoBehaviour
     public static Vector3 currentAngle;
     public static Vector3 craftPos;
 
-    private static bool activeAirplane;
-    
     public static Quaternion craftRot;
 
     public GameObject spriteMainBoost;
 
     public GameObject vertSensor;
     public GameObject horoSensor;
+    
+    
+    
+    
+    
+    
+    
     
     private void Awake()
     {
@@ -77,6 +83,7 @@ public class Glide : MonoBehaviour
         GetComponent<Rigidbody>().drag = .5f;
         GetComponent<Rigidbody>().angularDrag = 1;
         currentBoost = -1;
+        
         isPlaying = true;
         engineOn = false;
         activeAirplane = false;
@@ -85,6 +92,9 @@ public class Glide : MonoBehaviour
         momentum = 0;
     }
 
+    
+    
+    
     private void Start()
     {
         isFindingMomentum = true;
@@ -98,6 +108,9 @@ public class Glide : MonoBehaviour
         Boost();
         //sets the angle finding objects in the scene.
     }
+    
+    
+    
 
     IEnumerator FindVelocity()
     {
@@ -115,8 +128,11 @@ public class Glide : MonoBehaviour
     {
         while (isFindingMomentum)
         {
-            enginePower = (engineOn) ? Mathf.MoveTowards(enginePower, 15, engineDelta * Time.deltaTime) 
-                : enginePower = Mathf.MoveTowards(enginePower, 15, -.5f * Time.deltaTime);
+            enginePower = Mathf.MoveTowards(enginePower, 15, engineDelta * Time.deltaTime);
+            
+            /*enginePower = (engineOn) ? Mathf.MoveTowards(enginePower, 15, engineDelta * Time.deltaTime) 
+                : enginePower = Mathf.MoveTowards(enginePower, 15, -.2f * Time.deltaTime);*/
+            
             if (enginePower<0)
             {
                 enginePower = 0;
@@ -156,6 +172,9 @@ public class Glide : MonoBehaviour
         
     }
     
+    
+    
+    
     // gives a total number to power "the speed of craft dependant on other variables.
     void FixedUpdate()
     {
@@ -167,12 +186,10 @@ public class Glide : MonoBehaviour
         Physics.gravity = new Vector3(0, -gravTotal, 0);
         // adds gravity dependant on the speed of craft.
     }
-
-    /*void Grow()
-    {
-        transform.localScale *= 1.1f;
-    }*/
-    // code to make an object grow.
+    
+    
+    
+    
 
     private static void Boost()
     {
@@ -183,6 +200,7 @@ public class Glide : MonoBehaviour
                 thrust = 0;
                 rotToggle = 1;
                 engineOn = false;
+                engineDelta = -.2f;
                 gear = "Neutral";
                 break;
             case 0 :
@@ -190,6 +208,7 @@ public class Glide : MonoBehaviour
                 thrust = 0;
                 rotToggle = 1;
                 engineOn = true;
+                engineDelta = 2f;
                 gear = "primed";
                 break;
             case 1 :
@@ -205,6 +224,9 @@ public class Glide : MonoBehaviour
     }
     //  rotToggle needs rework. gear needs renaming and revisit the modes. general cleaning........................................
 
+    
+    
+    
     void BoostUp()
     {
         if (!activeAirplane)
@@ -238,6 +260,13 @@ public class Glide : MonoBehaviour
     {
         Boost(); 
     }
+    
+    
+    
+    
+    
+    
+    
     void VerticalTakeoff()
     {
         if (rollrights  >= .4f && !activeAirplane)
@@ -247,7 +276,6 @@ public class Glide : MonoBehaviour
         }
         // vertical takeoff needs to compare to rolllefts..... also make the colorbars change for vertical takeoff...... go over the profiler again to see whats up.
     }
-
     void VerticalTakeoffCancel()
     {
         if (stage2 == true && !activeAirplane)
@@ -263,7 +291,6 @@ public class Glide : MonoBehaviour
         }
         
     }
-
     IEnumerator ReturnEngineDelta()
     {
         yield return new WaitForSeconds(2);
@@ -285,6 +312,9 @@ public class Glide : MonoBehaviour
     */
     //needs work. allows the player to slow down and regain control.
 
+    
+    
+    
     private void Update()
     {
         gravAngle = Math.Abs(vQuatFinder.verticalGoldenAngle * .08f);
@@ -308,6 +338,9 @@ public class Glide : MonoBehaviour
         }
         //adds extra speed dependant on accel test numbers.
     }
+    
+    
+    
     
     private void OnEnable()
     {

@@ -21,6 +21,7 @@ public class Diognostics : MonoBehaviour
     public Text twelve;
     public Text thirteen;
     public Text fourteen;
+    public Text fifteen;
     
     public Slider rightTrigger;
     public Slider leftTrigger;
@@ -43,6 +44,7 @@ public class Diognostics : MonoBehaviour
         twelve.text = Glide.engineOn.ToString();
         thirteen.text = BoostAccel.engineCurrent.ToString("0");
         fourteen.text = Glide.rolllefts.ToString(".0");
+        fifteen.text = Glide.engineDelta.ToString("0" + "delta");
         rightTrigger.value = Glide.rollrights;
         leftTrigger.value = Glide.rolllefts;
     }

@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Floater : MonoBehaviour
 {
+    /*
 
     void FixedUpdate()
     {
@@ -21,4 +22,5 @@ public class Floater : MonoBehaviour
             target.z + 5);
         transform.position = direction;
     }
+    */
 }
