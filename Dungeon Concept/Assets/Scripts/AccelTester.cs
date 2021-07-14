@@ -5,15 +5,15 @@ using UnityEngine;
 public class AccelTester : MonoBehaviour
 {
     public static float currStrength = 0 ;
-    float maxStrength = vQuatFinder.verticalGoldenAngle;
-    float recoveryRate;
+    public static float maxStrength;
+    public static float recoveryRate;
 
     void Update()
     {
-        recoveryRate = Mathf.Abs(vQuatFinder.verticalGoldenAngle/3);
-        if (recoveryRate<=6)
+        recoveryRate = Mathf.Abs(vQuatFinder.verticalGoldenAngle);
+        if (recoveryRate<=10)
         {
-            recoveryRate = 6;
+            recoveryRate = 10;
         }
         
         // this scrip finds the vertical angle of the craft divides that by 3 and sets "recoveryRate" at the rate at which it approaches the vertical angle.
@@ -24,7 +24,7 @@ public class AccelTester : MonoBehaviour
         // "power" is the only variable that moves the ship (other than thrust which is unrelated here)
         // enginePower approaces 15 at the rate of engine delta and then becomes fixed unless the delta is moved or the 15 is changed. engine power is locked above 0 to prevent reverse unless momentum is in the negative
         // 
-        maxStrength = vQuatFinder.verticalGoldenAngle;
+        maxStrength = vQuatFinder.verticalGoldenAngle/6;
         currStrength = Mathf.MoveTowards(currStrength, maxStrength, recoveryRate * Time.deltaTime);
     }
 }

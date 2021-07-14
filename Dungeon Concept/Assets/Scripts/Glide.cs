@@ -26,11 +26,16 @@ public class Glide : MonoBehaviour
     public static float engineDelta =2;
     private static float grav = 13f;
 
+    private static float engineTarget =15;
+    //
+    public static float momentumApplied;
+    //
+
     private static int boostMode;
     public static int currentBoost;
     private static int rotToggle = 0;
     
-    private bool isPlaying;
+    public static bool isPlaying;
     private bool isFindingMomentum;
     private bool stage2 = false;
     public static bool engineOn;
@@ -73,6 +78,8 @@ public class Glide : MonoBehaviour
 
         secondary.faceButtons.BHold.performed += ctx => VerticalTakeoff();
         secondary.faceButtons.BHold.canceled += ctx => VerticalTakeoffCancel();
+        secondary.faceButtons.Ddown.performed += ctx => AirBrake();
+        secondary.faceButtons.Ddown.canceled += ctx => AirBrakeOff();
         //secondary.faceButtons.Bbutton.performed += ctx => ;
         //secondary.faceButtons.Bbutton.canceled += ctx =>;
         // sets up D-Pad and face buttons.
@@ -120,6 +127,12 @@ public class Glide : MonoBehaviour
             Vector3 prevPos = transform.position;
             yield return new WaitForFixedUpdate();
             currentSpeed = Mathf.RoundToInt(Vector3.Distance(transform.position, prevPos) / Time.fixedDeltaTime);
+
+            if (currentSpeed <=0)
+            {
+                StartCoroutine(FullReset());
+                yield return new WaitForSecondsRealtime(3);
+            }
         }
     }
     //finds the velocity of the player
@@ -128,7 +141,11 @@ public class Glide : MonoBehaviour
     {
         while (isFindingMomentum)
         {
-            enginePower = Mathf.MoveTowards(enginePower, 15, engineDelta * Time.deltaTime);
+            enginePower = Mathf.MoveTowards(enginePower, engineTarget, engineDelta * Time.deltaTime);
+
+            momentumApplied = Mathf.MoveTowards(momentumApplied, AccelTester.maxStrength*-1,
+                Mathf.Abs(momentum/2) * Time.deltaTime);
+            
             
             /*enginePower = (engineOn) ? Mathf.MoveTowards(enginePower, 15, engineDelta * Time.deltaTime) 
                 : enginePower = Mathf.MoveTowards(enginePower, 15, -.2f * Time.deltaTime);*/
@@ -138,7 +155,12 @@ public class Glide : MonoBehaviour
                 enginePower = 0;
             }
 
-            power = enginePower + momentum;
+            power = enginePower + momentumApplied;
+
+            if (power < 0)
+            {
+                power = 0;
+            }
             spriteMainBoost.SetActive(engineOn);
             yield return power;
         }
@@ -171,7 +193,18 @@ public class Glide : MonoBehaviour
         }
         
     }
-    
+
+
+    IEnumerator FullReset()
+    {
+        yield return new WaitForFixedUpdate();
+        activeAirplane = false;
+        engineOn = false;
+        engineTarget = 0;
+        engineDelta = 2;
+        currentBoost = -1;
+        StopCoroutine(AirplaneActive());
+    }
     
     
     
@@ -201,6 +234,7 @@ public class Glide : MonoBehaviour
                 rotToggle = 1;
                 engineOn = false;
                 engineDelta = -.2f;
+                engineTarget = 15;
                 gear = "Neutral";
                 break;
             case 0 :
@@ -209,11 +243,13 @@ public class Glide : MonoBehaviour
                 rotToggle = 1;
                 engineOn = true;
                 engineDelta = 2f;
+                engineTarget = 15;
                 gear = "primed";
                 break;
             case 1 :
                 thrust = 300;
                 gear = "booster on";
+                engineTarget = 15;
                 break;
             case 2 :
                 thrust = 0;
@@ -229,7 +265,7 @@ public class Glide : MonoBehaviour
     
     void BoostUp()
     {
-        if (!activeAirplane)
+        if (!activeAirplane && rollrights  >= .4f)
         {
             activeAirplane = true;
             engineOn = true;
@@ -238,9 +274,13 @@ public class Glide : MonoBehaviour
             Boost();
             
         }
-        else if (currentBoost<2)
+        else if (currentBoost<2 && activeAirplane)
         {
             currentBoost++;
+        }
+        else
+        {
+            return;
         }
     }
     // switches between motor functions.
@@ -282,6 +322,7 @@ public class Glide : MonoBehaviour
         {
             activeAirplane = true;
             engineOn = true;
+            engineTarget = 15;
             engineDelta = 15;
             currentBoost = 1;
             StartCoroutine(AirplaneActive());
@@ -296,20 +337,23 @@ public class Glide : MonoBehaviour
         yield return new WaitForSeconds(2);
         engineDelta = 2;
     }
-   /*
+   
     
-    void BoostDown()
+    void AirBrake()
     {
-        GetComponent<Rigidbody>().angularDrag = 2f;
-        power = 0;
+       gliderBody.angularDrag = 2f;
+       gliderBody.drag = 2f;
+       engineDelta = -2;
     }
-    void BoostDownActivate()
+    void AirBrakeOff()
     {
-        GetComponent<Rigidbody>().angularDrag = .5f;
-        power = 13;
+        gliderBody.angularDrag = .5f;
+        gliderBody.drag = .5f;
+        engineDelta = 2;
     }
+    // this ignores the fact that you may have boosters off and should be returning to an enging delta of =.2f.. I need to save current settings in a cache so they can be toggled easier. // could i just use the boostmode switch?
     
-    */
+    
     //needs work. allows the player to slow down and regain control.
 
     
@@ -328,14 +372,14 @@ public class Glide : MonoBehaviour
         // used as reference in other scripts that need the orientation of the player.
         
         momentum = AccelTester.currStrength*-1;
-        if (momentum > 8)
+        /*if (momentum > 9)
         {
-            momentum = 8;
+            momentum = 9;
         }
-        else if (momentum < -2)
+        else if (momentum < -9)
         {
-            momentum = -2;
-        }
+            momentum = -9;
+        }*/
         //adds extra speed dependant on accel test numbers.
     }
     

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
@@ -22,9 +23,19 @@ public class Diognostics : MonoBehaviour
     public Text thirteen;
     public Text fourteen;
     public Text fifteen;
+    public Text sixteen;
+    public Text seventeen;
+
+    public GameObject staller;
+    public GameObject resetter;
     
     public Slider rightTrigger;
     public Slider leftTrigger;
+
+    private void Start()
+    {
+        StartCoroutine(Warnings());
+    }
 
     // Update is called once per frame
     void Update()
@@ -42,10 +53,26 @@ public class Diognostics : MonoBehaviour
         ten.text = vQuatFinder.verticalGoldenAngle.ToString(".0"+ "true vert angle");
         eleven.text = hQuatFinder.horozontalGoldenAngle.ToString("0" + "Horozontal Angle");
         twelve.text = Glide.engineOn.ToString();
-        thirteen.text = BoostAccel.engineCurrent.ToString("0");
-        fourteen.text = Glide.rolllefts.ToString(".0");
+        thirteen.text = AccelTester.maxStrength.ToString("0" + "max strength");
+        fourteen.text = Glide.rolllefts.ToString(".0" + "rollefts");
         fifteen.text = Glide.engineDelta.ToString("0" + "delta");
+        sixteen.text = AccelTester.recoveryRate.ToString("0" + "recoveryRate");
+        seventeen.text = Glide.momentumApplied.ToString("0" + "MomentumApplied");
+        
         rightTrigger.value = Glide.rollrights;
         leftTrigger.value = Glide.rolllefts;
+    }
+
+    IEnumerator Warnings()
+    {
+        while (Glide.isPlaying)
+        {
+            staller.SetActive(Glide.currentSpeed <= 11);
+            resetter.SetActive(Glide.currentSpeed==0);
+            yield return staller;
+            yield return resetter;
+        }
+
+        
     }
 }
