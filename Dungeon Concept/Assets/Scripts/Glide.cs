@@ -13,36 +13,6 @@ public class Glide : MonoBehaviour
     PlayerControlls controls;
     SecondaryControls secondary;
     
-    public static float power = 13;
-    public static float enginePower;
-    public static float thrust = 0;
-    public static float rollrights;
-    public static float rolllefts;
-    public static float currentSpeed;
-    public static float gravTotal;
-    public static float gravAngle;
-    public static float rotAngle;
-    public static float momentum;
-    public static float engineDelta =2;
-    private static float grav = 13f;
-
-    private static float engineTarget =15;
-    //
-    public static float momentumApplied;
-    //
-
-    private static int boostMode;
-    public static int currentBoost;
-    private static int rotToggle = 0;
-    
-    public static bool isPlaying;
-    private bool isFindingMomentum;
-    private bool stage2 = false;
-    public static bool engineOn;
-    private static bool activeAirplane;
-    
-    public static string gear = "none";
-
     private Rigidbody gliderBody;
     
     public static Vector3 currentAngle;
@@ -51,15 +21,44 @@ public class Glide : MonoBehaviour
     public static Quaternion craftRot;
 
     public GameObject spriteMainBoost;
+    public GameObject takeoffSprite;
 
     public GameObject vertSensor;
     public GameObject horoSensor;
+
     
+    public static float power = 13;
+    public static float rollrights;
+    public static float rolllefts;
+    public static float currentSpeed;
+    public static float gravTotal;
+    public static float gravAngle;
+    public static float rotAngle;
+    private static float grav = 13f;
+    private static int boostMode;
+    // do not toutch
     
+    public static float enginePower;
+    public static float thrust = 0;
+    public static float momentum;
+    public static float engineDelta =2;
+    private static float engineTarget =15;
+    public static float momentumApplied;
+    public static int currentBoost;
+    private static int rotToggle = 0;  // this is old way of turning on and off this function
+    // variables
+
     
+    public static bool isPlaying;
+    private bool isFindingMomentum;
+    private bool stage2 = false;
+    private static bool brakeActive = false;
+    public static bool engineOn;
+    private static bool activeAirplane;
     
+    // bool variables
     
-    
+    public static string gear = "none";
     
     
     private void Awake()
@@ -87,29 +86,25 @@ public class Glide : MonoBehaviour
         gliderBody = GetComponent<Rigidbody>();
         //used to add force
         
-        GetComponent<Rigidbody>().drag = .5f;
+        GetComponent<Rigidbody>().drag = .7f;
         GetComponent<Rigidbody>().angularDrag = 1;
         currentBoost = -1;
         
         isPlaying = true;
         engineOn = false;
         activeAirplane = false;
+        isFindingMomentum = true;
         
         enginePower = 0;
         momentum = 0;
     }
-
-    
     
     
     private void Start()
     {
-        isFindingMomentum = true;
         StartCoroutine(FindVelocity());
         StartCoroutine(FindMomentum());
-        StartCoroutine(AirplaneActive());
         //StartCoroutine(StartAccelerating());
-        
         vertSensor.SetActive(true);
         horoSensor.SetActive(true);
         Boost();
@@ -117,98 +112,6 @@ public class Glide : MonoBehaviour
     }
     
     
-    
-
-    IEnumerator FindVelocity()
-    {
-        
-        while (isPlaying)
-        {
-            Vector3 prevPos = transform.position;
-            yield return new WaitForFixedUpdate();
-            currentSpeed = Mathf.RoundToInt(Vector3.Distance(transform.position, prevPos) / Time.fixedDeltaTime);
-
-            if (currentSpeed <=0)
-            {
-                StartCoroutine(FullReset());
-                yield return new WaitForSecondsRealtime(3);
-            }
-        }
-    }
-    //finds the velocity of the player
-
-    IEnumerator FindMomentum()
-    {
-        while (isFindingMomentum)
-        {
-            enginePower = Mathf.MoveTowards(enginePower, engineTarget, engineDelta * Time.deltaTime);
-
-            momentumApplied = Mathf.MoveTowards(momentumApplied, AccelTester.maxStrength*-1,
-                Mathf.Abs(momentum/2) * Time.deltaTime);
-            
-            
-            /*enginePower = (engineOn) ? Mathf.MoveTowards(enginePower, 15, engineDelta * Time.deltaTime) 
-                : enginePower = Mathf.MoveTowards(enginePower, 15, -.2f * Time.deltaTime);*/
-            
-            if (enginePower<0)
-            {
-                enginePower = 0;
-            }
-
-            power = enginePower + momentumApplied;
-
-            if (power < 0)
-            {
-                power = 0;
-            }
-            spriteMainBoost.SetActive(engineOn);
-            yield return power;
-        }
-    }
-
-    private IEnumerator AirplaneActive()
-    {
-        while (activeAirplane)
-        {
-            transform.Translate(Vector3.forward * (power * Time.deltaTime));// rail like movement
-            gliderBody.AddForce(transform.forward * (thrust * Time.deltaTime)); // vector type movement
-        
-            //gliderBody.AddForce(transform.up * liftTotal * Time.deltaTime);
-            //gliderBody.AddForce(transform.up * -liftTotal * Time.deltaTime);
-            //gliderBody.AddForce(gliderBody.transform.TransformDirection(Vector3.down)*power);
-        
-            //transform.Rotate(Vector3.right*100*rotToggle*Time.deltaTime);
-            transform.Rotate(Time.deltaTime * 100 * rotToggle * Vector3.right);//constant dive
-
-            transform.Rotate(Vector3.left * (rollrights * 100 * Time.deltaTime));// pitch right
-            transform.Rotate(Vector3.back * (rollrights * 50 * Time.deltaTime)); // lift
-        
-            transform.Rotate(Vector3.left * (rolllefts * 100 * Time.deltaTime)); //pitch left
-            transform.Rotate(Vector3.forward * (rolllefts * 50 * Time.deltaTime)); //lift
-
-            transform.Rotate(Vector3.up * (rotAngle * Time.deltaTime)); //rotate
-            //transform.Rotate(Vector3.down * rotAngle * Time.deltaTime);// rotate
-        
-            yield return new WaitForFixedUpdate();
-        }
-        
-    }
-
-
-    IEnumerator FullReset()
-    {
-        yield return new WaitForFixedUpdate();
-        activeAirplane = false;
-        engineOn = false;
-        engineTarget = 0;
-        engineDelta = 2;
-        currentBoost = -1;
-        StopCoroutine(AirplaneActive());
-    }
-    
-    
-    
-    // gives a total number to power "the speed of craft dependant on other variables.
     void FixedUpdate()
     {
         gravTotal = grav - currentSpeed + gravAngle;
@@ -219,144 +122,6 @@ public class Glide : MonoBehaviour
         Physics.gravity = new Vector3(0, -gravTotal, 0);
         // adds gravity dependant on the speed of craft.
     }
-    
-    
-    
-    
-
-    private static void Boost()
-    {
-        boostMode = currentBoost;
-        switch (boostMode)
-        {
-            case -1 :
-                thrust = 0;
-                rotToggle = 1;
-                engineOn = false;
-                engineDelta = -.2f;
-                engineTarget = 15;
-                gear = "Neutral";
-                break;
-            case 0 :
-                activeAirplane = true;
-                thrust = 0;
-                rotToggle = 1;
-                engineOn = true;
-                engineDelta = 2f;
-                engineTarget = 15;
-                gear = "primed";
-                break;
-            case 1 :
-                thrust = 300;
-                gear = "booster on";
-                engineTarget = 15;
-                break;
-            case 2 :
-                thrust = 0;
-                
-                gear = "booster off";
-                break;
-        }
-    }
-    //  rotToggle needs rework. gear needs renaming and revisit the modes. general cleaning........................................
-
-    
-    
-    
-    void BoostUp()
-    {
-        if (!activeAirplane && rollrights  >= .4f)
-        {
-            activeAirplane = true;
-            engineOn = true;
-            currentBoost = 0;
-            StartCoroutine(AirplaneActive());
-            Boost();
-            
-        }
-        else if (currentBoost<2 && activeAirplane)
-        {
-            currentBoost++;
-        }
-        else
-        {
-            return;
-        }
-    }
-    // switches between motor functions.
-    void BoostActivate()
-    {
-        Boost();
-    }
-    // switches modes in the boost method.
-    void BoostDown()
-    {
-        if (currentBoost>-1)
-        {
-            currentBoost--; 
-        }
-    }
-    void BoostDownActivate()
-    {
-        Boost(); 
-    }
-    
-    
-    
-    
-    
-    
-    
-    void VerticalTakeoff()
-    {
-        if (rollrights  >= .4f && !activeAirplane)
-        {
-            gliderBody.velocity = Time.deltaTime * 1500 * transform.up;
-            stage2 = true;
-        }
-        // vertical takeoff needs to compare to rolllefts..... also make the colorbars change for vertical takeoff...... go over the profiler again to see whats up.
-    }
-    void VerticalTakeoffCancel()
-    {
-        if (stage2 == true && !activeAirplane)
-        {
-            activeAirplane = true;
-            engineOn = true;
-            engineTarget = 15;
-            engineDelta = 15;
-            currentBoost = 1;
-            StartCoroutine(AirplaneActive());
-            Boost();
-            stage2 = false;
-            StartCoroutine(ReturnEngineDelta());
-        }
-        
-    }
-    IEnumerator ReturnEngineDelta()
-    {
-        yield return new WaitForSeconds(2);
-        engineDelta = 2;
-    }
-   
-    
-    void AirBrake()
-    {
-       gliderBody.angularDrag = 2f;
-       gliderBody.drag = 2f;
-       engineDelta = -2;
-    }
-    void AirBrakeOff()
-    {
-        gliderBody.angularDrag = .5f;
-        gliderBody.drag = .5f;
-        engineDelta = 2;
-    }
-    // this ignores the fact that you may have boosters off and should be returning to an enging delta of =.2f.. I need to save current settings in a cache so they can be toggled easier. // could i just use the boostmode switch?
-    
-    
-    //needs work. allows the player to slow down and regain control.
-
-    
     
     
     private void Update()
@@ -384,7 +149,236 @@ public class Glide : MonoBehaviour
     }
     
     
+    private static void Boost()
+    {
+        boostMode = currentBoost;
+        switch (boostMode)
+        {
+            case -1 :
+                thrust = 0;
+                rotToggle = 1;
+                engineTarget = 15;
+                engineOn = false;
+                if (!brakeActive)
+                {
+                    engineDelta = -.2f;
+                }
+                gear = "OFF";
+                break;
+            
+            case 0 :
+                thrust = 0;
+                rotToggle = 1;
+                if (!brakeActive)
+                {
+                    engineDelta = 2f;
+                }
+                engineTarget = 15;
+                activeAirplane = true;
+                engineOn = true;
+                gear = "ON";
+                break;
+            
+            case 1 :
+                thrust = 600;
+                engineTarget = 15;
+                rotToggle = 1;
+                if (!brakeActive)
+                {
+                    engineDelta = 2f;
+                }
+                engineTarget = 15;
+                gear = "BOOST";
+                break;
+            
+        }
+    }
+    //  rotToggle needs rework. gear needs renaming and revisit the modes. general cleaning........................................
+
+
+
+    IEnumerator FindVelocity()
+    {
+        
+        while (isPlaying)
+        {
+            Vector3 prevPos = transform.position;
+            yield return new WaitForFixedUpdate();
+            currentSpeed = Mathf.RoundToInt(Vector3.Distance(transform.position, prevPos) / Time.fixedDeltaTime);
+
+            if (currentSpeed <=0)
+            {
+                StartCoroutine(FullReset());
+                yield return new WaitForSecondsRealtime(3);
+            }
+        }
+    }
+    //finds the velocity of the player
+    //DO NOT TURN OFF IS PLAYING WHILE BEING USED
+
+    IEnumerator FindMomentum()
+    {
+        while (isFindingMomentum)
+        {
+            enginePower = Mathf.MoveTowards(enginePower, engineTarget, engineDelta * Time.deltaTime);
+
+            momentumApplied = Mathf.MoveTowards(momentumApplied, AccelTester.maxStrength*-1,
+                Mathf.Abs(momentum/2) * Time.deltaTime);
+            
+            
+            /*enginePower = (engineOn) ? Mathf.MoveTowards(enginePower, 15, engineDelta * Time.deltaTime) 
+                : enginePower = Mathf.MoveTowards(enginePower, 15, -.2f * Time.deltaTime);*/
+            
+            if (enginePower<0)
+            {
+                enginePower = 0;
+            }
+
+            power = enginePower + momentumApplied;
+
+            if (power < 0)
+            {
+                power = 0;
+            }
+            spriteMainBoost.SetActive(engineOn);
+            // is this ^^^ inefficient
+            yield return power;
+        }
+        //ENGINE POWER, ENGINE TARGET, ENGINE DELTA, MOMENTUM APPLIED, IS FINDING MOMENTUM
+    }
+
+    private IEnumerator AirplaneActive()
+    {
+        while (activeAirplane)
+        {
+            transform.Translate(Vector3.forward * (power * Time.deltaTime));// rail like movement
+            gliderBody.AddForce(transform.forward * (thrust * Time.deltaTime)); // vector type movement
+
+            transform.Rotate(Time.deltaTime * 100 * rotToggle * Vector3.right);//constant dive
+
+            transform.Rotate(Vector3.left * (rollrights * 100 * Time.deltaTime));// pitch right
+            transform.Rotate(Vector3.back * (rollrights * 70 * Time.deltaTime)); // lift
+        
+            transform.Rotate(Vector3.left * (rolllefts * 100 * Time.deltaTime)); //pitch left
+            transform.Rotate(Vector3.forward * (rolllefts * 70 * Time.deltaTime)); //lift
+
+            transform.Rotate(Vector3.up * (rotAngle * Time.deltaTime)); //rotate
+
+            yield return new WaitForFixedUpdate();
+        }
+        //ACTIVE AIRPLANE
+        
+    }
+
+
+    IEnumerator FullReset()
+    {
+        yield return new WaitForFixedUpdate();
+        activeAirplane = false;
+        engineOn = false;
+        engineTarget = 0;
+        engineDelta = 2;
+        currentBoost = -1;
+        StopCoroutine(AirplaneActive());
+    }
     
+    
+    
+    void BoostUp()
+    {
+        if (!activeAirplane && rollrights  >= .4f)
+        {
+            activeAirplane = true;
+            engineOn = true;
+            currentBoost = 0;
+            StartCoroutine(AirplaneActive());
+            Boost();
+            
+        }
+        else if (currentBoost<1 && activeAirplane)
+        {
+            currentBoost++;
+        }
+        else
+        {
+            return; // play audio here
+        }
+    }
+    // switches between motor functions.
+    
+    
+    void BoostActivate()
+    {
+        Boost();
+    }
+    // switches modes in the boost method.
+    
+    
+    void BoostDown()
+    {
+        if (currentBoost>-1)
+        {
+            currentBoost--; 
+        }
+    }
+    void BoostDownActivate()
+    {
+        Boost(); 
+    }
+
+
+    void VerticalTakeoff()
+    {
+        if (rollrights  >= .4f && !activeAirplane)
+        {
+            gliderBody.velocity = Time.deltaTime * 2500 * transform.up;
+            stage2 = true;
+            takeoffSprite.SetActive(true);
+        }
+        // vertical takeoff needs to compare to rolllefts..... also make the colorbars change for vertical takeoff...... go over the profiler again to see whats up.
+    }
+    void VerticalTakeoffCancel()
+    {
+        if (stage2 == true && !activeAirplane)
+        {
+            activeAirplane = true;
+            engineOn = true;
+            engineTarget = 15;
+            enginePower = 15;
+            currentBoost = 1;
+            StartCoroutine(AirplaneActive());
+            Boost();
+            StartCoroutine(ReturnEngineDelta());
+            stage2 = false;
+        }
+    }
+    
+    
+    IEnumerator ReturnEngineDelta()
+    {
+        
+        yield return new WaitForSeconds(2);
+        takeoffSprite.SetActive(false);
+        
+    }
+   
+    
+    void AirBrake()
+    {
+        brakeActive = true;
+        gliderBody.angularDrag = 2f;
+        gliderBody.drag = 2f;
+        engineDelta = -2;
+    }
+    void AirBrakeOff()
+    {
+        brakeActive = false;
+        gliderBody.angularDrag = .5f;
+        gliderBody.drag = .7f;
+        Boost();
+    }
+    // this ignores the fact that you may have boosters off and should be returning to an enging delta of =.2f.. I need to save current settings in a cache so they can be toggled easier. // could i just use the boostmode switch?
+
     
     private void OnEnable()
     {
