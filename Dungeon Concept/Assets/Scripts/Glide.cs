@@ -206,10 +206,13 @@ public class Glide : MonoBehaviour
             yield return new WaitForFixedUpdate();
             currentSpeed = Mathf.RoundToInt(Vector3.Distance(transform.position, prevPos) / Time.fixedDeltaTime);
 
-            if (currentSpeed <=0)
+            if (currentSpeed <=0 && gear =="OFF")
             {
-                StartCoroutine(FullReset());
+                
+                StartCoroutine(FullReset()); 
                 yield return new WaitForSecondsRealtime(3);
+                
+                
             }
         }
     }
@@ -333,20 +336,22 @@ public class Glide : MonoBehaviour
         {
             gliderBody.velocity = Time.deltaTime * 2500 * transform.up;
             stage2 = true;
+            activeAirplane = true;
+            StartCoroutine(AirplaneActive());
             takeoffSprite.SetActive(true);
         }
         // vertical takeoff needs to compare to rolllefts..... also make the colorbars change for vertical takeoff...... go over the profiler again to see whats up.
     }
     void VerticalTakeoffCancel()
     {
-        if (stage2 == true && !activeAirplane)
+        if (stage2 == true)
         {
-            activeAirplane = true;
+            
             engineOn = true;
             engineTarget = 15;
             enginePower = 15;
             currentBoost = 1;
-            StartCoroutine(AirplaneActive());
+            
             Boost();
             StartCoroutine(ReturnEngineDelta());
             stage2 = false;

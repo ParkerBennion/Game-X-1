@@ -68,7 +68,7 @@ public class Diognostics : MonoBehaviour
         while (Glide.isPlaying)
         {
             staller.SetActive(Glide.currentSpeed <= 11);
-            resetter.SetActive(Glide.currentSpeed==0);
+            resetter.SetActive(Glide.currentSpeed==0 && Glide.gear == "OFF");
             yield return staller;
             yield return resetter;
         }
